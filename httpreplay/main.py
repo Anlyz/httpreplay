@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) 2015-2018 Jurriaan Bremer <jbr@cuckoo.sh>
 # This file is part of HTTPReplay - http://jbremer.org/httpreplay/
 # See the file 'LICENSE' for copying permission.
@@ -37,7 +38,7 @@ def httpreplay(pcapfile, tlsmaster):
     reader.tcp = TCPPacketStreamer(reader, handlers)
 
     for s, ts, protocol, sent, recv in reader.process():
-        print s, "%f" % ts, protocol, getattr(sent, "uri", None)
+        print(s, "%f" % ts, protocol, getattr(sent, "uri", None))
 
 @click.command()
 @click.argument("pcapfile", type=click.File("rb"))
