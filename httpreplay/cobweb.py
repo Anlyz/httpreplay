@@ -8,6 +8,7 @@ import dpkt
 import logging
 import re
 import zlib
+import codecs
 
 from httpreplay.exceptions import UnknownHttpEncoding
 from httpreplay.shoddy import Protocol
@@ -44,7 +45,7 @@ def parse_body(f, headers):
     This is a modified version of dpkt.http.parse_body() which tolerates cut
     off HTTP bodies."""
     if headers.get("transfer-encoding", "").lower() == "chunked":
-        body = "".join(_read_chunked(f))
+        body = b"".join(_read_chunked(f))
     elif "content-length" in headers:
         n = int(headers["content-length"])
         body = f.read(n)
@@ -54,7 +55,7 @@ def parse_body(f, headers):
         body = f.read()
     else:
         # XXX - need to handle HTTP/0.9
-        body = ""
+        body = b""
 
     return body
 
@@ -197,12 +198,12 @@ class SmtpProtocol(Protocol):
     """Interprets the SMTP protocol."""
 
     _unimplemented = [
-        "etrn", "turn", "atrn", "size" ,
-        "etrn", "pipelining", "chunking", "data",
-        "dsn", "rset", "vrfy", "help" ,
-        "quit", "noop", "expn", "binarymime",
-        "relay", "size", "starttls", "checkpoint",
-        "enhancedstatuscodes", "8bitmime", "send"
+        b"etrn", b"turn", b"atrn", b"size",
+        b"etrn", b"pipelining", b"chunking", b"data",
+        b"dsn", b"rset", b"vrfy", b"help",
+        b"quit", b"noop", b"expn", b"binarymime",
+        b"relay", b"size", b"starttls", b"checkpoint",
+        b"enhancedstatuscodes", b"8bitmime", b"send"
     ]
 
     def init(self, *args, **kwargs):
@@ -225,11 +226,11 @@ class SmtpProtocol(Protocol):
         # Contains the functions to be called when this command is the first
         # string in a request message
         self._commands = {
-            "ehlo": self.handle_hostname,
-            "helo": self.handle_hostname,
-            "mail": self.handle_mail,
-            "rcpt": self.handle_rcpt,
-            "auth": self.handle_auth
+            b"ehlo": self.handle_hostname,
+            b"helo": self.handle_hostname,
+            b"mail": self.handle_mail,
+            b"rcpt": self.handle_rcpt,
+            b"auth": self.handle_auth
         }
 
         # Contains the functions to be called
@@ -269,14 +270,14 @@ class SmtpProtocol(Protocol):
         if "\r\n\r\n" not in data:
             return
 
-        headers, message = data.split("\r\n\r\n", 1)
+        headers, message = data.split(b"\r\n\r\n", 1)
         self.request.message = message
 
-        for header in headers.split("\r\n"):
+        for header in headers.split(b"\r\n"):
             if ":" not in header:
                 continue
 
-            key, value = header.split(":", 1)
+            key, value = header.split(b":", 1)
             self.request.headers[key] = value.strip()
 
     def handle_auth(self, data):
@@ -288,8 +289,8 @@ class SmtpProtocol(Protocol):
         http://www.samlogic.net/articles/smtp-commands-reference-auth.htm
         """
         auth_handlers = {
-            "plain": self.handle_auth_plain,
-            "login": self.handle_auth_login
+            b"plain": self.handle_auth_plain,
+            b"login": self.handle_auth_login
         }
 
         if len(data) < 2:
@@ -307,7 +308,7 @@ class SmtpProtocol(Protocol):
 
     def handle_auth_plain(self, arg):
         try:
-            user_pass = filter(None, arg.decode("base64").split("\x00"))
+            user_pass = list(filter(None, codecs.decode(arg.encode(), 'base64').split(b"\x00")))
             if len(user_pass) < 2:
                 return
 
@@ -318,13 +319,13 @@ class SmtpProtocol(Protocol):
 
     def handle_auth_login(self, arg):
         try:
-            self.request.username = arg.decode("base64")
+            self.request.username = codecs.decode(arg.encode(), 'base64')
         except binascii.Error:
             return
 
     def handle_auth_cram_md5(self, arg):
         try:
-            data = arg.decode("base64").split(None, 1)
+            data = codecs.decode(arg.encode(), 'base64').split(None, 1)
         except binascii.Error:
             return
 
@@ -334,12 +335,12 @@ class SmtpProtocol(Protocol):
     def handle_auth_login_serv_response(self, data):
         if "UGFzc3dvcmQ6" in self.message:
             try:
-                self.request.password = data.decode("base64")
+                self.request.password = codecs.decode(data.encode(), 'base64')
             except binascii.Error:
                 return
         elif "VXNlcm5hbWU6" in self.message:
             try:
-                self.request.username = data.decode("base64")
+                self.request.username = codecs.decode(data.encode(), 'base64')
             except binascii.Error:
                 return
 
@@ -350,9 +351,9 @@ class SmtpProtocol(Protocol):
         that happens, this function extracts them
         """
         handlers = {
-            "plain": self.handle_auth_plain,
-            "login": self.handle_auth_login_serv_response,
-            "cram-md5": self.handle_auth_cram_md5,
+            b"plain": self.handle_auth_plain,
+            b"login": self.handle_auth_login_serv_response,
+            b"cram-md5": self.handle_auth_cram_md5,
         }
 
         if data and self.request.auth_type in handlers:
@@ -403,7 +404,7 @@ class SmtpProtocol(Protocol):
             self.rescode = int(code)
 
             if self.rescode == 250:
-                self.reply.ok_responses.extend(filter(None, reply.split("\r\n")))
+                self.reply.ok_responses.extend(list(filter(None, reply.split(b"\r\n"))))
             elif self.rescode == 220 and self.reply.ready_message is None:
                 self.reply.ready_message = reply
 

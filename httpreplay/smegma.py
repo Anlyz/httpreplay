@@ -14,7 +14,7 @@ from httpreplay.shoddy import Protocol
 
 log = logging.getLogger(__name__)
 
-class Packet(str):
+class Packet(bytes):
     ts = None
 
 class TCPPacketStreamer(Protocol):
@@ -35,7 +35,8 @@ class TCPPacketStreamer(Protocol):
             handler = handler.parent
         handler.parent = self.parent
 
-    def handler(self, (srcip, srcport, dstip, dstport)):
+    def handler(self, addresses):
+        srcip, srcport, dstip, dstport = addresses
         if srcport in self.handlers:
             return self.handlers[srcport]
         elif dstport in self.handlers:
@@ -279,7 +280,7 @@ class TCPStream(Protocol):
 
         if tcp.data and to_server and self.recv:
             self.parent.handle(
-                self.s, self.ts, "tcp", "".join(self.sent), "".join(self.recv)
+                self.s, self.ts, "tcp", b"".join(self.sent), b"".join(self.recv)
             )
             self.sent, self.recv = [], []
             self.ts = None
@@ -362,7 +363,7 @@ class TCPStream(Protocol):
     def finish(self):
         if self.sent or self.recv:
             self.parent.handle(
-                self.s, self.ts, "tcp", "".join(self.sent), "".join(self.recv)
+                self.s, self.ts, "tcp", b"".join(self.sent), b"".join(self.recv)
             )
 
         if self.packets:
@@ -549,7 +550,7 @@ class TLSStream(Protocol):
                         ts,
                     )
 
-            self.parent.handle(s, ts, "tls", "".join(sent), "".join(recv))
+            self.parent.handle(s, ts, "tls", b"".join(sent), b"".join(recv))
             return True
 
     def state_done(self, s, ts):

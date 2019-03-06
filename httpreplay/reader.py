@@ -10,6 +10,11 @@ from httpreplay.exceptions import (
     UnknownDatalink, UnknownEthernetProtocol, UnknownIpProtocol,
 )
 
+try:
+  basestring
+except NameError:
+  basestring = str
+
 log = logging.getLogger(__name__)
 
 class PcapReader(object):
@@ -57,9 +62,8 @@ class PcapReader(object):
     def process(self):
         if not self.pcap:
             return
-
         for ts, packet in self.pcap:
-            if isinstance(packet, str):
+            if isinstance(packet, bytes):
                 if self.pcap.datalink() == dpkt.pcap.DLT_EN10MB:
                     packet = self._parse_ethernet(packet)
                 elif self.pcap.datalink() == 101:

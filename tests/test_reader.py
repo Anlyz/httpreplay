@@ -16,9 +16,9 @@ from httpreplay.reader import PcapReader
 def test_unknownDatalinkException():
     r = PcapReader(io.BytesIO(
         struct.pack(
-            "IHHIIII", dpkt.pcap.TCPDUMP_MAGIC, dpkt.pcap.PCAP_VERSION_MAJOR,
+            b"IHHIIII", dpkt.pcap.TCPDUMP_MAGIC, dpkt.pcap.PCAP_VERSION_MAJOR,
             dpkt.pcap.PCAP_VERSION_MINOR, 0, 0, 1500, 0
-        ) + "A"*16
+        ) + b"A"*16
     ))
     with pytest.raises(UnknownDatalink):
         list(r.process())
@@ -83,9 +83,9 @@ class TestNoExceptionsUnknownIpProtocol(PcapTest):
 class TestNoExceptionsUnknownDatalink(PcapTest):
     use_exceptions = False
     pcapdata = struct.pack(
-        "IHHIIII", dpkt.pcap.TCPDUMP_MAGIC, dpkt.pcap.PCAP_VERSION_MAJOR,
+        b"IHHIIII", dpkt.pcap.TCPDUMP_MAGIC, dpkt.pcap.PCAP_VERSION_MAJOR,
         dpkt.pcap.PCAP_VERSION_MINOR, 0, 0, 1500, 0
-    ) + "A"*16
+    ) + b"A"*16
 
     expected_output = [
         UnknownDatalink,

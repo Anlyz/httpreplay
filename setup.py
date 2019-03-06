@@ -16,7 +16,7 @@ setup(
     description="Properly interpret, decrypt, and replay pcap files",
     install_requires=[
         "dpkt==1.9.2",
-        "tlslite-ng==0.6.0",
+        "tlslite-ng==0.7.5",
         "click>=6.6, <7",
     ],
     extras_require={
@@ -24,7 +24,8 @@ setup(
             "mitmproxy==0.18.2",
         ],
         "dev": [
-            "pytest>=2.9.1"
+            "pytest>=2.9.1",
+            "mock"
         ]
     },
     entry_points={
