@@ -44,7 +44,7 @@ def parse_body(f, headers):
     This is a modified version of dpkt.http.parse_body() which tolerates cut
     off HTTP bodies."""
     if headers.get("transfer-encoding", "").lower() == "chunked":
-        body = "".join(_read_chunked(f))
+        body = b"".join(_read_chunked(f))
     elif "content-length" in headers:
         n = int(headers["content-length"])
         body = f.read(n)
@@ -54,7 +54,7 @@ def parse_body(f, headers):
         body = f.read()
     else:
         # XXX - need to handle HTTP/0.9
-        body = ""
+        body = b""
 
     return body
 
@@ -142,7 +142,7 @@ class HttpProtocol(Protocol):
             res.raw = recv
             return res
         except dpkt.NeedData as e:
-            if e.message == "premature end of chunked body":
+            if str(e) == "premature end of chunked body":
                 log.warning("Chunked HTTP response is most likely missing "
                             "data in the network stream (timestamp %f).", ts)
             else:
@@ -150,7 +150,7 @@ class HttpProtocol(Protocol):
                     "Unknown HTTP response error (timestamp %f): %s", ts, e
                 )
         except dpkt.UnpackError as e:
-            if e.message == "missing chunk size":
+            if str(e) == "missing chunk size":
                 log.warning(
                     "Server informed us about a Chunked HTTP response but "
                     "there doesn't appear to be one (timestamp %f).", ts

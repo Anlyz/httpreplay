@@ -14,7 +14,7 @@ from httpreplay.shoddy import Protocol
 
 log = logging.getLogger(__name__)
 
-class Packet(str):
+class Packet(bytes):
     ts = None
 
 class TCPPacketStreamer(Protocol):
@@ -35,8 +35,8 @@ class TCPPacketStreamer(Protocol):
             handler = handler.parent
         handler.parent = self.parent
 
-    def handler(self, xxx_todo_changeme):
-        (srcip, srcport, dstip, dstport) = xxx_todo_changeme
+    def handler(self, addr_info):
+        (srcip, srcport, dstip, dstport) = addr_info
         if srcport in self.handlers:
             return self.handlers[srcport]
         elif dstport in self.handlers:
@@ -280,7 +280,7 @@ class TCPStream(Protocol):
 
         if tcp.data and to_server and self.recv:
             self.parent.handle(
-                self.s, self.ts, "tcp", "".join(self.sent), "".join(self.recv)
+                self.s, self.ts, "tcp", b"".join(self.sent), b"".join(self.recv)
             )
             self.sent, self.recv = [], []
             self.ts = None
@@ -363,7 +363,7 @@ class TCPStream(Protocol):
     def finish(self):
         if self.sent or self.recv:
             self.parent.handle(
-                self.s, self.ts, "tcp", "".join(self.sent), "".join(self.recv)
+                self.s, self.ts, "tcp", b"".join(self.sent), b"".join(self.recv)
             )
 
         if self.packets:

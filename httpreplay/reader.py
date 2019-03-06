@@ -29,7 +29,7 @@ class PcapReader(object):
         self.exceptions = {}
 
         # Backwards compatibilty with httpreplay<=0.1.14.
-        if isinstance(fp_or_filepath, basestring):
+        if isinstance(fp_or_filepath, str):
             fp_or_filepath = open(fp_or_filepath, "rb")
 
         try:
@@ -59,7 +59,7 @@ class PcapReader(object):
             return
 
         for ts, packet in self.pcap:
-            if isinstance(packet, str):
+            if isinstance(packet, bytes):
                 if self.pcap.datalink() == dpkt.pcap.DLT_EN10MB:
                     packet = self._parse_ethernet(packet)
                 elif self.pcap.datalink() == 101:
