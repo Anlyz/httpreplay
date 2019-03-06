@@ -408,17 +408,17 @@ class _TLSStream(tlslite.tlsrecordlayer.TLSRecordLayer):
     def decrypt(self, state, record_type, buf):
         self._recordLayer._readState = state
         if state.encContext.isBlockCipher:
-            return str(self._recordLayer._decryptThenMAC(
+            return self._recordLayer._decryptThenMAC(
                 record_type, bytearray(buf)
-            ))
+            )
         elif state.encContext.isAEAD:
-            return str(self._recordLayer._decryptAndUnseal(
+            return self._recordLayer._decryptAndUnseal(
                 record_type, bytearray(buf)
-            ))
+            )
         else:
-            return str(self._recordLayer._decryptStreamThenMAC(
+            return self._recordLayer._decryptStreamThenMAC(
                 record_type, bytearray(buf)
-            ))
+            )
 
     def decrypt_server(self, record_type, buf):
         return self.decrypt(self.server_state, record_type, buf)
@@ -533,7 +533,7 @@ class TLSStream(Protocol):
             while self.sent:
                 record = self.sent.pop(0)
                 sent.append(self.tls.decrypt_client(record.type, record.data))
-
+                
             recv = []
             while self.recv:
                 record = self.recv.pop(0)

@@ -366,11 +366,11 @@ class TestNoTLSKeys(object):
     def test_no_tls_keys(self, p):
         h = https_handler()
         h.parent.parent = dummy = self.DummyProtocol()
-        h.handle((0, 0, 0, 0), 0, "tcp", "foo\r\n", "bar")
+        h.handle((0, 0, 0, 0), 0, "tcp", b"foo\r\n", b"bar")
 
         p.assert_not_called()
         assert dummy.values == [
-            ((0, 0, 0, 0), 0, "tcp", "foo\r\n", "bar"),
+            ((0, 0, 0, 0), 0, "tcp", b"foo\r\n", b"bar"),
         ]
 
 def test_read_chunked():
