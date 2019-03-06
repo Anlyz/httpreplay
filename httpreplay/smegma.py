@@ -35,8 +35,8 @@ class TCPPacketStreamer(Protocol):
             handler = handler.parent
         handler.parent = self.parent
 
-    def handler(self, addresses):
-        srcip, srcport, dstip, dstport = addresses
+    def handler(self, addr_info):
+        (srcip, srcport, dstip, dstport) = addr_info
         if srcport in self.handlers:
             return self.handlers[srcport]
         elif dstport in self.handlers:
@@ -435,8 +435,8 @@ class TLSStream(Protocol):
         self.tls = _TLSStream(None)
         self.sent = []
         self.recv = []
-        self.raw_sent = ""
-        self.raw_recv = ""
+        self.raw_sent = b""
+        self.raw_recv = b""
 
     def parse_record(self, record):
         if record.type not in dpkt.ssl.RECORD_TYPES:

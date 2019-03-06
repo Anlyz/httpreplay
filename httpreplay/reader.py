@@ -34,13 +34,13 @@ class PcapReader(object):
         self.exceptions = {}
 
         # Backwards compatibilty with httpreplay<=0.1.14.
-        if isinstance(fp_or_filepath, basestring):
+        if isinstance(fp_or_filepath, str):
             fp_or_filepath = open(fp_or_filepath, "rb")
 
         try:
             self.pcap = dpkt.pcap.Reader(fp_or_filepath)
         except ValueError as e:
-            if e.message == "invalid tcpdump header":
+            if str(e) == "invalid tcpdump header":
                 log.critical("Currently we don't support PCAP-NG files")
             self.pcap = None
 
@@ -54,7 +54,7 @@ class PcapReader(object):
         try:
             return dpkt.ethernet.Ethernet(packet)
         except dpkt.NeedData as e:
-            if e.message:
+            if str(e):
                 log.critical(
                     "Unknown exception parsing ethernet packet: %s", e
                 )

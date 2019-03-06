@@ -68,7 +68,7 @@ def decode_gzip(ts, content):
     try:
         return zlib.decompress(content, 16 + zlib.MAX_WBITS)
     except zlib.error as e:
-        if "incomplete or truncated stream" in e.message:
+        if "incomplete or truncated stream" in str(e):
             log.warning(
                 "Error unpacking GZIP stream in HTTP response, it is quite "
                 "likely that something went wrong during the process of "
@@ -121,7 +121,7 @@ class HttpProtocol(Protocol):
             res.raw = sent
             return res
         except dpkt.UnpackError as e:
-            if e.message.startswith("invalid http method"):
+            if str(e).startswith("invalid http method"):
                 log.warning("This is not a HTTP request (timestamp %f).", ts)
             else:
                 log.warning(
@@ -143,7 +143,7 @@ class HttpProtocol(Protocol):
             res.raw = recv
             return res
         except dpkt.NeedData as e:
-            if e.message == "premature end of chunked body":
+            if str(e) == "premature end of chunked body":
                 log.warning("Chunked HTTP response is most likely missing "
                             "data in the network stream (timestamp %f).", ts)
             else:
@@ -151,7 +151,7 @@ class HttpProtocol(Protocol):
                     "Unknown HTTP response error (timestamp %f): %s", ts, e
                 )
         except dpkt.UnpackError as e:
-            if e.message == "missing chunk size":
+            if str(e) == "missing chunk size":
                 log.warning(
                     "Server informed us about a Chunked HTTP response but "
                     "there doesn't appear to be one (timestamp %f).", ts
@@ -260,21 +260,21 @@ class SmtpProtocol(Protocol):
 
     def handle_rcpt(self, data):
         for val in data:
-            self.request.mail_to.extend(re.findall("<(.*?)>", val, re.DOTALL))
+            self.request.mail_to.extend(re.findall(b"<(.*?)>", val, re.DOTALL))
 
     def handle_mail(self, data):
         for val in data:
-            self.request.mail_from.extend(re.findall("<(.*?)>", val, re.DOTALL))
+            self.request.mail_from.extend(re.findall(b"<(.*?)>", val, re.DOTALL))
 
     def handle_mailbody(self, data):
-        if "\r\n\r\n" not in data:
+        if b"\r\n\r\n" not in data:
             return
 
         headers, message = data.split(b"\r\n\r\n", 1)
         self.request.message = message
 
         for header in headers.split(b"\r\n"):
-            if ":" not in header:
+            if b":" not in header:
                 continue
 
             key, value = header.split(b":", 1)
@@ -308,7 +308,7 @@ class SmtpProtocol(Protocol):
 
     def handle_auth_plain(self, arg):
         try:
-            user_pass = list(filter(None, codecs.decode(arg.encode(), 'base64').split(b"\x00")))
+            user_pass = list(filter(None, codecs.decode(arg, 'base64').split(b"\x00")))
             if len(user_pass) < 2:
                 return
 
@@ -319,13 +319,13 @@ class SmtpProtocol(Protocol):
 
     def handle_auth_login(self, arg):
         try:
-            self.request.username = codecs.decode(arg.encode(), 'base64')
+            self.request.username = codecs.decode(arg, 'base64')
         except binascii.Error:
             return
 
     def handle_auth_cram_md5(self, arg):
         try:
-            data = codecs.decode(arg.encode(), 'base64').split(None, 1)
+            data = codecs.decode(arg, 'base64').split(None, 1)
         except binascii.Error:
             return
 
@@ -333,14 +333,14 @@ class SmtpProtocol(Protocol):
             self.request.username = data[0]
 
     def handle_auth_login_serv_response(self, data):
-        if "UGFzc3dvcmQ6" in self.message:
+        if b"UGFzc3dvcmQ6" in self.message:
             try:
-                self.request.password = codecs.decode(data.encode(), 'base64')
+                self.request.password = codecs.decode(data, 'base64')
             except binascii.Error:
                 return
-        elif "VXNlcm5hbWU6" in self.message:
+        elif b"VXNlcm5hbWU6" in self.message:
             try:
-                self.request.username = codecs.decode(data.encode(), 'base64')
+                self.request.username = codecs.decode(data, 'base64')
             except binascii.Error:
                 return
 

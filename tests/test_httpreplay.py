@@ -1,6 +1,7 @@
 # Copyright (C) 2015-2018 Jurriaan Bremer <jbr@cuckoo.sh>
 # This file is part of HTTPReplay - http://jbremer.org/httpreplay/
 # See the file 'LICENSE' for copying permission.
+import codecs
 
 import dpkt
 import hashlib
@@ -308,10 +309,11 @@ class TestTLSWithRC4(PcapTest):
     pcapfile = "stream11.pcap"
 
     def _https_handler():
-        session_id = "5ab7c9537928268ba71cd5fc790b6accb29707cfa7b3f85347e432a439eb1b4b"
-        master_key = "50321cf5552ba2f3ed34cd6eee005cf6490f5d915c7db8e2cfbf54940140308aa09c0a4e94107df6b25d2509f5bf0f13"
+        session_id = b"5ab7c9537928268ba71cd5fc790b6accb29707cfa7b3f85347e432a439eb1b4b"
+        master_key = b"50321cf5552ba2f3ed34cd6eee005cf6490f5d915c7db8e2cfbf54940140308aa09c0a4e94107df6b25d2509f5bf0f13"
+
         return https_handler({
-            session_id.decode("hex"): master_key.decode("hex"),
+            codecs.decode(session_id, "hex"): codecs.decode(master_key, "hex")
         })
 
     handlers = {
@@ -332,7 +334,7 @@ class TestNoGzipBody(PcapTest):
         session_id = "479ef8a88198b5b3f7e5b8bf79dea2d0635300ad744de08deb4e83610c5227e9"
         master_key = "25fba9ac38b8750ead7b9ba50aba06e12aa566ffa0c3fa24cbdaf638711b8458da84cd79e9b32f4025a858a5c106c7a5"
         return https_handler({
-            session_id.decode("hex"): master_key.decode("hex"),
+            codecs.decode(session_id, "hex"): codecs.decode(master_key, "hex"),
         })
 
     def format(self, s, ts, p, sent, recv):
