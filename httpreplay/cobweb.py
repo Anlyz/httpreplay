@@ -366,7 +366,7 @@ class SmtpProtocol(Protocol):
         """
         self.request.raw.append(request)
 
-        if self.command != "data":
+        if self.command != b"data":
             data = request.split(None)
         else:
             data = request
