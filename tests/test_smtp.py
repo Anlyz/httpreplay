@@ -31,8 +31,8 @@ def test_read_smtp_from_to():
     sent, recv = test.get_sent_recv()
 
     expected = [
-        ['xxxxxx@xxxxx.co.uk'],
-        ['xxxxxx.xxxx@xxxxx.com']
+        [b'xxxxxx@xxxxx.co.uk'],
+        [b'xxxxxx.xxxx@xxxxx.com']
     ]
 
     output = [
@@ -45,23 +45,23 @@ def test_read_smtp_headers():
     test = SmtpTest(os.path.join("tests", "pcaps", "smtp-auth-login.pcap"))
     sent, recv = test.get_sent_recv()
     assert sent.headers == {
-        "Thread-Index": "Ace2O6M0WGyVJP3rQCuQePVHKWo5Ag==",
-        "From": '"WShark User" <xxxxxx@xxxxx.co.uk>',
-        "X-MimeOLE": "Produced By Microsoft MimeOLE V6.00.2900.3138",
-        "To": "<xxxxxx.xxxx@xxxxx.com>",
-        "Date": "Sun, 24 Jun 2007 10:56:03 +0200",
-        "Reply-To": "<xxxxxx@xxxxx.co.uk>",
-        "Subject": "Test message for capture",
-        "Content-Type": "multipart/mixed;",
-        "X-Mailer": "Microsoft Office Outlook, Build 11.0.5510",
-        "MIME-Version": "1.0",
+        b'Reply-To': b'<xxxxxx@xxxxx.co.uk>',
+        b'From': b'"WShark User" <xxxxxx@xxxxx.co.uk>',
+        b'To': b'<xxxxxx.xxxx@xxxxx.com>',
+        b'Subject': b'Test message for capture',
+        b'Date': b'Sun, 24 Jun 2007 10:56:03 +0200',
+        b'MIME-Version': b'1.0',
+        b'Content-Type': b'multipart/mixed;',
+        b'X-Mailer': b'Microsoft Office Outlook, Build 11.0.5510',
+        b'Thread-Index': b'Ace2O6M0WGyVJP3rQCuQePVHKWo5Ag==',
+        b'X-MimeOLE': b'Produced By Microsoft MimeOLE V6.00.2900.3138'
     }
 
 def test_read_smtp_message_body():
     test = SmtpTest(os.path.join("tests", "pcaps", "smtp-auth-login.pcap"))
     sent, recv = test.get_sent_recv()
     assert sent.message[:48] == (
-        "This is a multi-part message in MIME format.\r\n\r\n"
+        b"This is a multi-part message in MIME format.\r\n\r\n"
     )
 
 def test_get_username_password_auth_login():

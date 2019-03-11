@@ -373,8 +373,10 @@ class SmtpProtocol(Protocol):
 
         if not data:
             return
-
-        cmd = data[0].lower()
+        try:
+            cmd = data[0].lower()
+        except AttributeError:
+            cmd = ''
 
         # If no valid command is found, see if there are
         # any actions to be performed for the last received response code
